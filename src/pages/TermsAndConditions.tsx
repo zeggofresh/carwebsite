@@ -1,28 +1,37 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, FileText, Download } from 'lucide-react';
+import { ArrowLeft, FileText, Download, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function TermsAndConditions() {
-  const { type } = useParams<{ type: 'personal' | 'business' }>();
-  const { t } = useLanguage();
-  const [displayLanguage, setDisplayLanguage] = useState<'en' | 'hi'>('en');
+  const { type } = useParams() as { type: 'personal' | 'business' };
+  const { t, language } = useLanguage();
+  const [displayLanguage, setDisplayLanguage] = useState<'en' | 'ar'>('en');
 
   const isBusiness = type === 'business';
   const title = isBusiness ? 'Business Terms & Conditions' : 'Personal Terms & Conditions';
-  const docPath = isBusiness 
-    ? '/Business_terms_conditions.docx' 
-    : '/Personal_terms_conditions.docx';
+  
+  // PDF paths - using public folder
+  const pdfPath = isBusiness 
+    ? '/Business_terms_conditions.pdf' 
+    : '/Personal_terms_conditions.pdf';
+  
+  // Alternative: If you want to host PDFs online (recommended for better viewing)
+  // You can upload them to a cloud storage and use those URLs
+  const onlinePdfUrl = isBusiness
+    ? 'https://carwash-h7df.vercel.app/Business_terms_conditions.pdf'
+    : 'https://carwash-h7df.vercel.app/Personal_terms_conditions.pdf';
 
   const handleViewDocument = () => {
-    window.open(docPath, '_blank');
+    // Try online URL first, fallback to local path
+    window.open(onlinePdfUrl || pdfPath, '_blank');
   };
 
-  const toggleLanguage = (lang: 'en' | 'hi') => {
+  const toggleLanguage = (lang: 'en' | 'ar') => {
     setDisplayLanguage(lang);
   };
 
-  // Terms content in English and Hindi
+  // Terms content in English and Arabic
   const termsContent = {
     personal: {
       en: `
@@ -52,32 +61,32 @@ export default function TermsAndConditions() {
         <h3>8. Modifications to Terms</h3>
         <p>We reserve the right to modify these terms at any time. Continued use of the platform constitutes acceptance of modified terms.</p>
       `,
-      hi: `
-        <h2>व्यक्तिगत उपयोगकर्ता नियम और शर्तें</h2>
+      ar: `
+        <h2>شروط وأحكام المستخدم الشخصي</h2>
         
-        <h3>1. नियमों की स्वीकृति</h3>
-        <p>Clean Cars 360 सेवाओं तक पहुंचकर और उनका उपयोग करके, आप इस अनुबंध के नियमों और प्रावधानों को स्वीकार करते हैं और उनसे बंधने के लिए सहमत होते हैं।</p>
+        <h3>1. قبول الشروط</h3>
+        <p>من خلال الوصول إلى خدمات Clean Cars 360 واستخدامها، فإنك تقبل وتوافق على الالتزام بشروط وأحكام هذا الاتفاق.</p>
         
-        <h3>2. सेवाएं</h3>
-        <p>Clean Cars 360 हमारे प्लेटफॉर्म के माध्यम से कार वॉशिंग और विवरण सेवाएं प्रदान करता है। हम ग्राहकों को सत्यापित कार वॉश केंद्रों से जोड़ते हैं।</p>
+        <h3>2. الخدمات</h3>
+        <p>توفر Clean Cars 360 خدمات غسيل وتنظيف السيارات من خلال منصتنا. نحن نوصل العملاء بمراكز غسيل سيارات معتمدة.</p>
         
-        <h3>3. उपयोगकर्ता खाता</h3>
-        <p>आप अपने खाते की जानकारी की गोपनीयता बनाए रखने और अपने खाते के तहत होने वाली सभी गतिविधियों के लिए जिम्मेदार हैं।</p>
+        <h3>3. حساب المستخدم</h3>
+        <p>أنت مسؤول عن الحفاظ على سرية بيانات حسابك وجميع الأنشطة التي تتم تحت حسابك.</p>
         
-        <h3>4. बुकिंग और रद्दीकरण</h3>
-        <p>उपयोगकर्ता प्लेटफॉर्म के माध्यम से सेवाएं बुक कर सकते हैं। रद्दीकरण अनुसूचित सेवा समय से कम से कम 2 घंटे पहले किया जाना चाहिए।</p>
+        <h3>4. الحجز والإلغاء</h3>
+        <p>يمكن للمستخدمين حجز الخدمات من خلال المنصة. يجب إجراء الإلغاء قبل ساعتين على الأقل من وقت الخدمة المحدد.</p>
         
-        <h3>5. भुगतान</h3>
-        <p>प्लेटफॉर्म पर प्रदर्शित मूल्य के अनुसार सभी भुगतान किए जाने चाहिए। हम नकद, कार्ड और ऑनलाइन भुगतान विधियां स्वीकार करते हैं।</p>
+        <h3>5. الدفع</h3>
+        <p>يجب إجراء جميع المدفوعات وفقًا للأسعار المعروضة على المنصة. نحن نقبل طرق الدفع النقدي والبطاقة والدفع عبر الإنترنت.</p>
         
-        <h3>6. गुणवत्ता गारंटी</h3>
-        <p>यदि आप सेवा की गुणवत्ता से संतुष्ट नहीं हैं, तो कृपया 24 घंटों के भीतर हमें सूचित करें और हम आपकी चिंताओं का समाधान करेंगे।</p>
+        <h3>6. ضمان الجودة</h3>
+        <p>إذا لم تكن راضيًا عن جودة الخدمة، يرجى إخبارنا خلال 24 ساعة وسنعالج مخاوفك.</p>
         
-        <h3>7. देयता में सीमा</h3>
-        <p>Clean Cars 360 हमारी सेवाओं के उपयोग से उत्पन्न होने वाले किसी भी अप्रत्यक्ष, आकस्मिक, या परिणामी क्षति के लिए उत्तरदायी नहीं है।</p>
+        <h3>7. حدود المسؤولية</h3>
+        <p>لا تتحمل Clean Cars 360 مسؤولية أي أضرار غير مباشرة أو عرضية أو تبعية ناتجة عن استخدام خدماتنا.</p>
         
-        <h3>8. नियमों में संशोधन</h3>
-        <p>हम किसी भी समय इन नियमों को संशोधित करने का अधिकार सुरक्षित रखते हैं। प्लेटफॉर्म का निरंतर उपयोग संशोधित नियमों की स्वीकृति का गठन करता है।</p>
+        <h3>8. التعديلات على الشروط</h3>
+        <p>نحن نحتفظ بالحق في تعديل هذه الشروط في أي وقت. يشكل الاستمرار في استخدام المنصة قبولاً للشروط المعدلة.</p>
       `
     },
     business: {
@@ -108,32 +117,32 @@ export default function TermsAndConditions() {
         <h3>8. Termination</h3>
         <p>Either party may terminate this agreement with 30 days written notice. Immediate termination may occur for violation of terms.</p>
       `,
-      hi: `
-        <h2>व्यापारिक साझेदार नियम और शर्तें</h2>
+      ar: `
+        <h2>شروط وأحكام شريك الأعمال</h2>
         
-        <h3>1. साझेदारी समझौता</h3>
-        <p>Clean Cars 360 के साथ व्यापारिक साझेदार के रूप में पंजीकरण करके, आप हमारे ग्राहकों को उच्च-गुणवत्ता वाली कार वॉशिंग और विवरण सेवाएं प्रदान करने के लिए सहमत होते हैं।</p>
+        <h3>1. اتفاقية الشراكة</h3>
+        <p>من خلال التسجيل كشريك أعمال مع Clean Cars 360، فإنك توافق على تقديم خدمات غسيل وتنظيف السيارات عالية الجودة لعملائنا.</p>
         
-        <h3>2. व्यवसाय सत्यापन</h3>
-        <p>सभी व्यवसायों को पंजीकरण के दौरान वैध वाणिज्यिक पंजीकरण, कर प्रमाण पत्र, और अन्य आवश्यक दस्तावेज़ प्रदान करने होंगे।</p>
+        <h3>2. التحقق من الأعمال</h3>
+        <p>يجب على جميع الشركات تقديم سجل تجاري صالح وشهادات ضريبية ومستندات أخرى مطلوبة أثناء التسجيل.</p>
         
-        <h3>3. सेवा मानक</h3>
-        <p>साझेदारों को लगातार सेवा गुणवत्ता बनाए रखनी होगी, अनुमोदित उत्पादों का उपयोग करना होगा, और Clean Cars 360 सेवा दिशानिर्देशों का पालन करना होगा।</p>
+        <h3>3. معايير الخدمة</h3>
+        <p>يجب على الشركاء الحفاظ على جودة خدمة متسقة، واستخدام المنتجات المعتمدة، واتباع إرشادات خدمة Clean Cars 360.</p>
         
-        <h3>4. मूल्य निर्धारण और कमीशन</h3>
-        <p>व्यापारिक साझेदार Clean Cars 360 द्वारा परिभाषित कमीशन संरचना के लिए सहमत हैं। सभी मूल्य निर्धारण पारदर्शी होना चाहिए और प्लेटफॉर्म पर प्रदर्शित किया जाना चाहिए।</p>
+        <h3>4. التسعير والعمولة</h3>
+        <p>يوافق شركاء الأعمال على هيكل العمولة كما حددته Clean Cars 360. يجب أن تكون جميع الأسعار شفافة ومعروضة على المنصة.</p>
         
-        <h3>5. ग्राहक सेवा</h3>
-        <p>साझेदारों को सभी ग्राहकों के साथ पेशेवर व्यवहार करना चाहिए, शिकायतों का त्वरित समाधान करना चाहिए, और उच्च संतुष्टि रेटिंग बनाए रखनी चाहिए।</p>
+        <h3>5. خدمة العملاء</h3>
+        <p>يجب على الشركاء معاملة جميع العملاء باحترافية، وحل الشكاوى على الفور، والحفاظ على تصنيفات رضا عالية.</p>
         
-        <h3>6. भुगतान निपटान</h3>
-        <p>सहमत कमीशन घटाने के बाद साप्ताहिक भुगतान का निपटान किया जाएगा। डैशबोर्ड के माध्यम से विस्तृत रिपोर्ट प्रदान की जाएगी।</p>
+        <h3>6. تسوية المدفوعات</h3>
+        <p>ستتم تسوية المدفوعات أسبوعيًا بعد خصم العمولة المتفق عليها. سيتم توفير تقارير مفصلة من خلال لوحة التحكم.</p>
         
-        <h3>7. ब्रांड उपयोग</h3>
-        <p>साझेदार केवल पूर्व लिखित अनुमोदन के साथ विपणन उद्देश्यों के लिए Clean Cars 360 ब्रांडिंग का उपयोग कर सकते हैं।</p>
+        <h3>7. استخدام العلامة التجارية</h3>
+        <p>قد يستخدم الشركاء علامة Clean Cars 360 التجارية لأغراض التسويق فقط بموافقة خطية مسبقة.</p>
         
-        <h3>8. समाप्ति</h3>
-        <p>कोई भी पक्ष 30 दिन के लिखित नोटिस के साथ इस समझौते को समाप्त कर सकता है। नियमों के उल्लंघन के लिए तत्काल समाप्ति हो सकती है।</p>
+        <h3>8. الإنهاء</h3>
+        <p>يجوز لأي من الطرفين إنهاء هذه الاتفاقية بإشعار كتابي مدته 30 يومًا. قد يحدث الإنهاء الفوري لانتهاك الشروط.</p>
       `
     }
   };
@@ -164,14 +173,14 @@ export default function TermsAndConditions() {
               English
             </button>
             <button
-              onClick={() => toggleLanguage('hi')}
+              onClick={() => toggleLanguage('ar')}
               className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                displayLanguage === 'hi' 
+                displayLanguage === 'ar' 
                   ? 'bg-yellow-400 text-black' 
                   : 'bg-white/5 text-white hover:bg-white/10'
               }`}
             >
-              हिंदी
+              العربية
             </button>
           </div>
         </div>
@@ -203,29 +212,46 @@ export default function TermsAndConditions() {
               </div>
             )}
 
-            {/* Show Hindi */}
-            {displayLanguage === 'hi' && (
-              <div>
+            {/* Show Arabic */}
+            {displayLanguage === 'ar' && (
+              <div dir="rtl">
                 <h2 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">
-                  <span className="text-2xl">🇮🇳</span> हिंदी संस्करण (Hindi Version)
+                  <span className="text-2xl">🇸🇦</span> النسخة العربية
                 </h2>
                 <div 
                   className="prose prose-invert max-w-none text-white/90"
-                  dangerouslySetInnerHTML={{ __html: termsContent[isBusiness ? 'business' : 'personal'].hi }}
+                  dangerouslySetInnerHTML={{ __html: termsContent[isBusiness ? 'business' : 'personal'].ar }}
                 />
               </div>
             )}
           </div>
 
-          {/* Download Option */}
-          <div className="flex flex-col items-center gap-4 mb-6">
-            <p className="text-slate-400 text-sm">
-              {t('documentFormatDocx')}
-            </p>
-            
-            <div className="flex gap-4">
+          {/* PDF Viewer Section */}
+          <div className="mb-6">
+            <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-xl p-4 mb-4">
+              <h3 className="text-lg font-bold text-yellow-400 mb-2 flex items-center gap-2">
+                <FileText size={20} />
+                {t('viewTermsDocument')}
+              </h3>
+              <p className="text-sm text-slate-400">
+                {t('viewTermsDescription')}
+              </p>
+            </div>
+
+            {/* Embedded PDF Viewer */}
+            <div className="bg-black border border-white/10 rounded-xl overflow-hidden" style={{ height: '600px' }}>
+              <iframe
+                src={`${onlinePdfUrl || pdfPath}#toolbar=0&navpanes=0&scrollbar=0`}
+                className="w-full h-full"
+                title="Terms and Conditions PDF"
+                style={{ border: 'none' }}
+              />
+            </div>
+
+            {/* Alternative Download Options */}
+            <div className="flex flex-wrap gap-4 mt-4 justify-center">
               <a 
-                href={docPath}
+                href={onlinePdfUrl || pdfPath}
                 download
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-yellow-400 font-bold text-sm transition-all"
               >
@@ -237,8 +263,8 @@ export default function TermsAndConditions() {
                 onClick={handleViewDocument}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-black rounded-xl font-bold text-sm transition-all shadow-lg shadow-yellow-400/10"
               >
-                <FileText size={18} />
-                Open in New Tab
+                <ExternalLink size={18} />
+                {t('openInFullScreen')}
               </button>
             </div>
           </div>

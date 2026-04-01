@@ -6,7 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { cn } from '../../lib/utils';
 
 interface Service {
-  id: string;
+  id: number; // Changed from string to number
   name_en: string;
   name_ar: string;
   price: number;
@@ -35,7 +35,7 @@ export default function CenterDetails() {
   const [center, setCenter] = useState<CenterDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'services' | 'subscriptions' | 'offers'>('services');
-  const [requesting, setRequesting] = useState<string | null>(null);
+  const [requesting, setRequesting] = useState<number | null>(null);
   const { t, language } = useLanguage();
   const navigate = useNavigate();
 
@@ -54,18 +54,20 @@ export default function CenterDetails() {
     }
   };
 
-  const handleRequestService = async (serviceId: string) => {
+  const handleRequestService = async (serviceId: number) => {
     setRequesting(serviceId);
     try {
+      console.log('Sending service request:', { business_id: id, service_id: serviceId });
       await api.post('/customer/requests', {
         business_id: id,
-        service_id: serviceId,
-        type: 'service'
+        service_id: serviceId
+        // Removed 'type' field as it's not needed
       });
       alert(t('Service request sent! The center will notify you once approved.'));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to request service:', error);
-      alert(t('Failed to send request. Please try again.'));
+      const errorMsg = error?.response?.data?.message || error?.response?.data?.debug || 'Failed to send request';
+      alert(t(errorMsg || 'Failed to send request. Please try again.'));
     } finally {
       setRequesting(null);
     }

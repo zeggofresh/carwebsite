@@ -198,9 +198,16 @@ export const translations = {
     personalRegistrationTerms: 'Personal Registration Terms',
     viewDownloadDocument: 'View/Download Document',
     documentFormatDocx: 'Document format: .docx (Microsoft Word)',
+    documentFormatPdf: 'Document format: PDF',
     importantTermsNotice: 'Important: By registering for Clean Cars 360, you agree to be bound by these terms and conditions. Please ensure you have read and understood them before proceeding with your registration.',
     downloadDirectly: 'Download directly',
-    openInNewTab: 'Open in new tab'
+    openInNewTab: 'Open in new tab',
+    openInFullScreen: 'Open in Full Screen',
+    viewTermsDocument: 'View Terms Document (PDF)',
+    viewTermsDescription: 'Click the button below to view or download the terms and conditions document in PDF format.',
+    englishVersion: 'English Version',
+    arabicVersion: 'Arabic Version',
+    readTermsAbove: 'Please read the terms and conditions above carefully'
   },
   ar: {
     dashboard: 'لوحة التحكم',
@@ -399,8 +406,15 @@ export const translations = {
     personalRegistrationTerms: 'شروط التسجيل الشخصي',
     viewDownloadDocument: 'عرض/تحميل المستند',
     documentFormatDocx: 'صيغة المستند: .docx (مايكروسوفت وورد)',
+    documentFormatPdf: 'صيغة المستند: PDF',
     importantTermsNotice: 'مهم: بالتسجيل في Clean Cars 360، فإنك توافق على الالتزام بهذه الشروط والأحكام. يرجى التأكد من قراءتها وفهمها قبل المتابعة في التسجيل.',
     downloadDirectly: 'تحميل مباشرة',
-    openInNewTab: 'فتح في تبويب جديد'
+    openInNewTab: 'فتح في تبويب جديد',
+    openInFullScreen: 'فتح في شاشة كاملة',
+    viewTermsDocument: 'عرض مستند الشروط (PDF)',
+    viewTermsDescription: 'انقر على الزر أدناه لعرض أو تحميل مستند الشروط والأحكام بصيغة PDF',
+    englishVersion: 'النسخة الإنجليزية',
+    arabicVersion: 'النسخة العربية',
+    readTermsAbove: 'يرجى قراءة الشروط والأحكام أعلاه بعناية'
   }
 };

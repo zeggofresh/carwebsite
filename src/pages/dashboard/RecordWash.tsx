@@ -85,6 +85,14 @@ export default function RecordWash() {
     
     setSubmitting(true);
     try {
+      console.log('Recording wash:', {
+        customer_id: customer.id,
+        service_id: selectedService.id,
+        car_size: carSize,
+        price: getPrice(),
+        payment_method: paymentMethod
+      });
+      
       await api.post('/business/washes', {
         customer_id: customer.id,
         service_id: selectedService.id,
@@ -93,9 +101,10 @@ export default function RecordWash() {
         payment_method: paymentMethod
       });
       setIsSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to record wash:', error);
-      alert('Failed to record wash');
+      const errorMsg = error?.response?.data?.message || error?.response?.data?.detail || 'Failed to record wash';
+      alert(errorMsg);
     } finally {
       setSubmitting(false);
     }
