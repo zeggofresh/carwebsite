@@ -35,6 +35,7 @@ export default function OffersManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     code: '',
@@ -54,11 +55,14 @@ export default function OffersManagement() {
 
   const fetchOffers = async () => {
     try {
+      setError(null);
       const response = await api.get('/business/offers');
       setOffers(response.data);
-    } catch (error) {
-      console.error('Failed to fetch offers:', error);
-      toast.error('Failed to load offers');
+    } catch (err: any) {
+      console.error('Failed to fetch offers:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to load offers';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -104,18 +108,23 @@ export default function OffersManagement() {
 
   const handleEdit = (offer: Offer) => {
     setEditingId(offer.id);
-    setFormData({
-      code: offer.code,
-      name_en: offer.name_en,
-      name_ar: offer.name_ar,
-      details_en: offer.details_en,
-      details_ar: offer.details_ar,
-      discount_percentage: offer.discount_percentage.toString(),
-      start_date: format(new Date(offer.start_date), 'yyyy-MM-dd'),
-      expiry_date: format(new Date(offer.expiry_date), 'yyyy-MM-dd'),
-      is_active: offer.is_active
-    });
-    setShowForm(true);
+    try {
+      setFormData({
+        code: offer.code,
+        name_en: offer.name_en,
+        name_ar: offer.name_ar,
+        details_en: offer.details_en,
+        details_ar: offer.details_ar,
+        discount_percentage: offer.discount_percentage.toString(),
+        start_date: offer.start_date ? format(new Date(offer.start_date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+        expiry_date: offer.expiry_date ? format(new Date(offer.expiry_date), 'yyyy-MM-dd') : format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        is_active: offer.is_active
+      });
+      setShowForm(true);
+    } catch (err) {
+      console.error('Error parsing offer dates:', err);
+      toast.error('Invalid date format in offer');
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -166,8 +175,24 @@ export default function OffersManagement() {
       </div>
 
       {/* Offers List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
+      {error && (
+        <div className="col-span-full py-20 text-center">
+          <div className="flex flex-col items-center gap-4 text-white/20">
+            <Gift size={48} />
+            <p className="text-sm font-bold uppercase tracking-widest">Error Loading Offers</p>
+            <p className="text-white/40 text-xs max-w-md">{error}</p>
+            <button 
+              onClick={fetchOffers}
+              className="mt-4 px-6 py-2 bg-yellow-500 text-black rounded-full font-bold text-sm hover:bg-yellow-400 transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+      {!error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {loading ? (
           <div className="col-span-full py-20 text-center">
             <Loader2 className="animate-spin text-yellow-500 mx-auto" size={32} />
           </div>
@@ -223,21 +248,38 @@ export default function OffersManagement() {
                       <Calendar size={12} className="text-white/30" />
                       <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Start</span>
                     </div>
-                    <div className="text-xs font-bold">{format(new Date(offer.start_date), 'MMM d, yyyy')}</div>
+                    <div className="text-xs font-bold">
+                      {offer.start_date ? (() => {
+                        try {
+                          return format(new Date(offer.start_date), 'MMM d, yyyy');
+                        } catch (e) {
+                          return 'Invalid date';
+                        }
+                      })() : 'N/A'}
+                    </div>
                   </div>
                   <div className="p-3 bg-white/5 rounded-xl border border-white/5">
                     <div className="flex items-center gap-2 mb-1">
                       <Calendar size={12} className="text-white/30" />
                       <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Expiry</span>
                     </div>
-                    <div className="text-xs font-bold text-rose-400">{format(new Date(offer.expiry_date), 'MMM d, yyyy')}</div>
+                    <div className="text-xs font-bold text-rose-400">
+                      {offer.expiry_date ? (() => {
+                        try {
+                          return format(new Date(offer.expiry_date), 'MMM d, yyyy');
+                        } catch (e) {
+                          return 'Invalid date';
+                        }
+                      })() : 'N/A'}
+                    </div>
                   </div>
                 </div>
               </div>
             </motion.div>
           ))
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Add/Edit Modal */}
       <AnimatePresence>

@@ -10,7 +10,8 @@ import {
   User,
   Phone,
   Tag,
-  CreditCard
+  CreditCard,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import api from '../../../lib/api';
@@ -50,6 +51,8 @@ export default function GiftCardManagement() {
     price: ''
   });
 
+  const [selectedServiceName, setSelectedServiceName] = useState<string>('');
+
   useEffect(() => {
     fetchGiftCards();
     fetchServices();
@@ -71,8 +74,10 @@ export default function GiftCardManagement() {
     try {
       const response = await api.get('/business/services');
       setServices(response.data);
+      console.log('Services loaded:', response.data);
     } catch (error) {
       console.error('Failed to fetch services:', error);
+      toast.error('Failed to load services. Please refresh the page.');
     }
   };
 
@@ -281,21 +286,44 @@ export default function GiftCardManagement() {
                         required
                         value={formData.service_id}
                         onChange={(e) => {
-                          const service = services.find(s => s.id === parseInt(e.target.value));
-                          setFormData({ 
-                            ...formData, 
-                            service_id: e.target.value,
-                            price: service ? service.price_fallback.toString() : ''
-                          });
+                          const serviceId = e.target.value;
+                          const service = services.find(s => s.id === parseInt(serviceId));
+                          if (service) {
+                            setSelectedServiceName(service.name_en);
+                            setFormData({ 
+                              ...formData, 
+                              service_id: serviceId,
+                              price: service.price_fallback ? service.price_fallback.toString() : ''
+                            });
+                            console.log('Service selected:', service);
+                          }
                         }}
-                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 transition-all appearance-none cursor-pointer hover:border-yellow-500/30"
                       >
-                        <option value="" className="bg-black">Choose a service</option>
-                        {services.map(s => (
-                          <option key={s.id} value={s.id} className="bg-black">{s.name_en}</option>
-                        ))}
+                        <option value="" disabled className="bg-black text-white/50">Choose a service</option>
+                        {services.length === 0 ? (
+                          <option value="" disabled className="bg-black text-orange-400">No services available</option>
+                        ) : (
+                          services.map(s => (
+                            <option key={s.id} value={s.id} className="bg-[#0a0a0a] text-white">
+                              {s.name_en} - SAR {s.price_fallback || 0}
+                            </option>
+                          ))
+                        )}
                       </select>
+                      <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </div>
+                    {selectedServiceName && (
+                      <div className="flex items-center gap-2 text-green-400 text-xs mt-1">
+                        <CheckCircle2 size={14} />
+                        <span>Selected: {selectedServiceName}</span>
+                      </div>
+                    )}
+                    {services.length === 0 && (
+                      <p className="text-xs text-orange-400 mt-1">No services found. Please add services first in Price List Management.</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Price (SAR)</label>
@@ -308,6 +336,7 @@ export default function GiftCardManagement() {
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                         className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 transition-all"
+                        placeholder="0.00"
                       />
                     </div>
                   </div>

@@ -22,6 +22,21 @@ interface Service {
   business_name: string;
 }
 
+interface PurchaseModalProps {
+  show: boolean;
+  onClose: () => void;
+  purchaseType: 'cash' | 'service';
+  onTypeChange: (type: 'cash' | 'service') => void;
+  amount: number;
+  onAmountChange: (amount: number) => void;
+  selectedService: Service | null;
+  onServiceSelect: (service: Service | null) => void;
+  services: Service[];
+  onPurchase: () => void;
+  processing: boolean;
+  t: any;
+}
+
 export default function GiftCards() {
   const [cards, setCards] = useState<GiftCard[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -54,20 +69,25 @@ export default function GiftCards() {
   const fetchServices = async () => {
     try {
       const res = await api.get('/customer/centers');
+      console.log('Centers API Response:', res.data);
       // Extract all services from all centers
       const allServices: Service[] = [];
       if (Array.isArray(res.data)) {
         res.data.forEach((center: any) => {
+          console.log('Processing center:', center);
           if (Array.isArray(center.services)) {
             center.services.forEach((service: any) => {
               allServices.push({
                 ...service,
-                business_name: center.name
+                business_name: center.name || center.business_name || 'Unknown Center'
               });
             });
+          } else {
+            console.log('No services found in center:', center.name);
           }
         });
       }
+      console.log('All services extracted:', allServices);
       setServices(allServices);
     } catch (error) {
       console.error('Failed to fetch services:', error);
@@ -109,6 +129,87 @@ export default function GiftCards() {
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
   };
+
+  const [showServiceSelector, setShowServiceSelector] = useState(false);
+
+  // Service Selector Modal Component
+  const ServiceSelectorModal = () => (
+    showServiceSelector && (
+      <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+        <div className="bg-neutral-900 w-full max-w-[440px] rounded-[32px] p-6 animate-in zoom-in-95 duration-200 border border-white/10 shadow-2xl">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-white">{t('Select Service')}</h3>
+            <button 
+              onClick={() => setShowServiceSelector(false)} 
+              className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl p-2 transition-all"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {services.length > 0 && (
+            <div className="mb-4 text-xs text-slate-400">
+              {services.length} {services.length === 1 ? t('service') : t('services')} {t('available')}
+            </div>
+          )}
+
+          <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+            {services.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Gift size={32} className="text-slate-500" />
+                </div>
+                <p className="text-slate-400 text-sm">{t('No services available')}</p>
+              </div>
+            ) : (
+              services.map((service) => (
+                <button
+                  key={service.id}
+                  onClick={() => {
+                    setSelectedService(service);
+                    setShowServiceSelector(false);
+                  }}
+                  className={cn(
+                    "w-full p-4 rounded-2xl text-left transition-all border flex justify-between items-center group",
+                    selectedService?.id === service.id
+                      ? "bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20"
+                      : "bg-black text-slate-400 border-white/10 hover:border-yellow-400/50 hover:bg-white/5"
+                  )}
+                >
+                  <div className="flex-1">
+                    <div className="font-bold text-base mb-1">{service.name_en}</div>
+                    <div className="text-xs opacity-70 flex items-center gap-1">
+                      <span>{service.business_name}</span>
+                    </div>
+                  </div>
+                  <div className="font-black text-lg text-yellow-400 group-hover:text-yellow-300">
+                    SAR {service.price_small}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+
+          {selectedService && (
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-xl p-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="text-xs text-yellow-400 font-bold mb-1">{t('Selected Service')}</div>
+                    <div className="text-sm text-white font-medium">{selectedService.name_en}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-yellow-400 font-bold mb-1">{t('Price')}</div>
+                    <div className="text-lg font-black text-yellow-400">SAR {selectedService.price_small}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  );
 
   if (loading) {
     return (
@@ -246,26 +347,38 @@ export default function GiftCards() {
               ) : (
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-2">{t('Select Service')}</label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                    {services.map((service) => (
-                      <button
-                        key={service.id}
-                        onClick={() => setSelectedService(service)}
-                        className={cn(
-                          "w-full p-3 rounded-xl text-left transition-all border flex justify-between items-center",
-                          selectedService?.id === service.id
-                            ? "bg-yellow-400 text-black border-yellow-400"
-                            : "bg-black text-slate-400 border-white/10 hover:border-white/30"
-                        )}
-                      >
-                        <div>
-                          <div className="font-bold text-sm">{service.name_en}</div>
-                          <div className="text-xs opacity-70">{service.business_name}</div>
+                  <button
+                    onClick={() => setShowServiceSelector(true)}
+                    className={cn(
+                      "w-full p-4 rounded-2xl text-left transition-all border flex justify-between items-center",
+                      selectedService
+                        ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/50 hover:border-yellow-400"
+                        : "bg-black text-slate-400 border-white/10 hover:border-yellow-400/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Gift size={20} className={selectedService ? "text-yellow-400" : "text-slate-500"} />
+                      <div>
+                        <div className="font-bold text-sm">
+                          {selectedService ? selectedService.name_en : t('Choose a service...')}
                         </div>
-                        <div className="font-bold text-sm">SAR {service.price_small}</div>
-                      </button>
-                    ))}
-                  </div>
+                        {selectedService && (
+                          <div className="text-xs opacity-70">{selectedService.business_name}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedService && (
+                        <div className="font-black text-lg text-yellow-400">
+                          SAR {selectedService.price_small}
+                        </div>
+                      )}
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-slate-400">
+                        <path d="M7.5 12.5L10 15L12.5 12.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7.5 7.5L10 5L12.5 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </button>
                 </div>
               )}
 
@@ -287,6 +400,9 @@ export default function GiftCards() {
           </div>
         </div>
       )}
+
+      {/* Service Selector Modal */}
+      <ServiceSelectorModal />
     </div>
   );
 }
