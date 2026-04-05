@@ -17,20 +17,46 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double submission
 
   const completeLogin = (user: any) => {
-    console.log('Completing login for user role:', user.role);
+    console.log('=== COMPLETING LOGIN ===');
+    console.log('User role from backend:', user.role);
+    console.log('Login type selected:', loginType);
     
     // Store role separately for quick access
     localStorage.setItem('role', user.role);
     
+    // Validate that the role matches expectations
+    if (loginType === 'business' && user.role !== 'business_owner' && user.role !== 'business') {
+      console.warn('Warning: Business login attempted but user role is:', user.role);
+    }
+    
+    if (loginType === 'personal' && user.role === 'business_owner' || user.role === 'business') {
+      console.warn('Warning: Personal login attempted but user has business role:', user.role);
+    }
+    
     // Small delay to ensure localStorage is saved before navigation
     setTimeout(() => {
+      let redirectPath = '/app'; // default to customer app
+      
       if (user.role === 'super_admin') {
-        window.location.href = '/admin';
+        redirectPath = '/admin';
+        console.log('Redirecting to Admin Portal');
       } else if (user.role === 'business_owner' || user.role === 'business') {
-        window.location.href = '/dashboard';
+        redirectPath = '/dashboard';
+        console.log('Redirecting to Business Dashboard');
+      } else if (user.role === 'customer') {
+        redirectPath = '/app';
+        console.log('Redirecting to Customer App');
       } else {
-        window.location.href = '/app';
+        console.error('Unknown role:', user.role);
+        setError('Invalid user role. Please contact support.');
+        toast.error('Invalid user role');
+        setIsSubmitting(false);
+        setLoading(false);
+        return;
       }
+      
+      console.log('Navigating to:', redirectPath);
+      window.location.href = redirectPath;
     }, 100);
   };
 
@@ -147,6 +173,31 @@ export default function Login() {
           >
             {t('loginBusiness')}
           </button>
+        </div>
+
+        {/* Login Type Indicator */}
+        <div className="mb-6 text-center">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider ${
+            loginType === 'business' 
+              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+              : 'bg-green-500/10 text-green-400 border border-green-500/20'
+          }`}>
+            {loginType === 'business' ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                Business Dashboard Access
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Customer App Access
+              </>
+            )}
+          </div>
         </div>
 
         {error && (
