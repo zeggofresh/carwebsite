@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Car } from 'lucide-react';
 import api from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
+import toast from 'react-hot-toast';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,27 +14,46 @@ export default function Login() {
   const { t } = useLanguage();
 
   const [loginType, setLoginType] = useState<'personal' | 'business'>('personal');
+  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double submission
 
   const completeLogin = (user: any) => {
     console.log('Completing login for user role:', user.role);
     
-    // Use window.location.href for hard navigation to avoid routing issues
-    if (user.role === 'super_admin') {
-      window.location.href = '/admin';
-    } else if (user.role === 'business_owner' || user.role === 'business') {
-      window.location.href = '/dashboard';
-    } else {
-      window.location.href = '/app';
-    }
+    // Store role separately for quick access
+    localStorage.setItem('role', user.role);
+    
+    // Small delay to ensure localStorage is saved before navigation
+    setTimeout(() => {
+      if (user.role === 'super_admin') {
+        window.location.href = '/admin';
+      } else if (user.role === 'business_owner' || user.role === 'business') {
+        window.location.href = '/dashboard';
+      } else {
+        window.location.href = '/app';
+      }
+    }, 100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent any default form behavior
+    
+    // Prevent double submission
+    if (isSubmitting || loading) {
+      console.log('Already submitting, ignoring...');
+      return;
+    }
+    
+    console.log('=== FORM SUBMISSION STARTED ===');
+    setIsSubmitting(true);
     setError('');
     setLoading(true);
 
     try {
-      console.log('Attempting login with:', { phone, password, type: loginType });
+      console.log('=== LOGIN ATTEMPT ===');
+      console.log('Login type:', loginType);
+      console.log('Phone:', phone);
+      console.log('Password:', password ? '***' : 'empty');
       
       const res = await api.post('/auth/login', { 
         phone, 
@@ -41,24 +61,50 @@ export default function Login() {
         type: loginType 
       });
       
-      console.log('Login response:', res.data);
+      console.log('=== LOGIN RESPONSE ===');
+      console.log('Full response:', res);
+      console.log('Response data:', res.data);
       
       const { token, user } = res.data;
 
       if (!token || !user) {
+        console.error('Missing token or user in response');
         throw new Error('Invalid response from server');
       }
 
+      if (!user.role) {
+        console.error('User role missing:', user);
+        throw new Error('User role is missing from response');
+      }
+
+      console.log('=== STORING AUTH DATA ===');
+      console.log('Token:', token ? 'present' : 'missing');
+      console.log('User:', user);
+      console.log('Role:', user.role);
+      
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('role', user.role);
+      
+      console.log('=== AUTH DATA STORED ===');
+      console.log('Stored role:', localStorage.getItem('role'));
+      console.log('Stored user:', localStorage.getItem('user'));
 
-      console.log('Login successful, navigating to:', user.role);
+      console.log('=== NAVIGATING TO:', user.role, '===');
       completeLogin(user);
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || t('loginFailed'));
+      console.error('=== LOGIN ERROR ===');
+      console.error('Error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error message:', err.message);
+      
+      const errorMessage = err.response?.data?.message || err.message || t('loginFailed');
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
+      console.log('=== FORM SUBMISSION ENDED ===');
     }
   };
 

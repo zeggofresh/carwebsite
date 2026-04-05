@@ -27,6 +27,26 @@ export default function BusinessLayout() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
+  // Authentication check
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    const role = localStorage.getItem('role');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    console.log('BusinessLayout - Checking auth:', { 
+      hasToken: !!token, 
+      role: role, 
+      userRole: user?.role,
+      path: location.pathname 
+    });
+
+    if (!token || (role !== 'business_owner' && role !== 'business' && user?.role !== 'business_owner' && user?.role !== 'business')) {
+      console.log('BusinessLayout - Not authorized, redirecting to login');
+      navigate('/login', { replace: true });
+    }
+  }, [navigate, location.pathname]);
+
   const sidebarLinks = [
     { name: t('dashboard'), path: '/dashboard', icon: LayoutDashboard },
     { name: t('pendingRequests'), path: '/dashboard/requests', icon: Clock },

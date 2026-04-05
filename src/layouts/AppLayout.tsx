@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { Home, History, CreditCard, User, MapPin } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -15,7 +15,28 @@ const navLinks = [
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useLanguage();
+
+  // Authentication check for customer portal
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    const role = localStorage.getItem('role');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    console.log('AppLayout - Checking auth:', { 
+      hasToken: !!token, 
+      role: role, 
+      userRole: user?.role,
+      path: location.pathname 
+    });
+
+    if (!token || (role !== 'customer' && user?.role !== 'customer')) {
+      console.log('AppLayout - Not authorized, redirecting to login');
+      navigate('/login', { replace: true });
+    }
+  }, [navigate, location.pathname]);
 
   return (
     <div className="min-h-screen bg-black flex justify-center">

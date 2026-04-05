@@ -19,13 +19,21 @@ export default function AdminLayout() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
+    const role = localStorage.getItem('role');
     const user = userStr ? JSON.parse(userStr) : null;
-    const role = user?.role;
 
-    if (!token || role !== 'super_admin') {
-      navigate('/admin/login');
+    console.log('AdminLayout - Checking auth:', { 
+      hasToken: !!token, 
+      role: role, 
+      userRole: user?.role,
+      path: location.pathname 
+    });
+
+    if (!token || (role !== 'super_admin' && user?.role !== 'super_admin')) {
+      console.log('AdminLayout - Not authorized, redirecting to admin login');
+      navigate('/admin/login', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
